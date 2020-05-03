@@ -1,7 +1,7 @@
 // 1. Create a map object.
 var mymap = L.map('map', {
     center: [44.13, -119.93],
-    zoom: 7,
+    zoom: 3,
     maxZoom: 10,
     minZoom: 3,
     detectRetina: true});
@@ -43,7 +43,7 @@ cellTowers= L.geoJson.ajax("assets/cell_towers.geojson", {
         else { id = 8;} // "Salem Cellular"
         return L.marker(latlng, {icon: L.divIcon({className: 'fa fa-signal marker-color-' + (id + 1).toString() })});
     },
-    attribution: 'Cell Tower Data &copy; Map Cruzin | Oregon counties &copy; Oregon Explorer | Base Map &copy; CartoDB | Made By Bo Zhao'
+    attribution: 'Cell Tower Data &copy; Map Cruzin | Oregon counties &copy; Oregon Explorer | Base Map &copy; CartoDB | Made By Gordon DeLap'
 }).addTo(mymap);
 
 
@@ -73,10 +73,10 @@ function style(feature) {
     };
 }
 
-// 8. Add county polygons
-// create counties variable, and assign null to it.
-var counties = null;
-counties = L.geoJson.ajax("assets/counties.geojson", {
+// 8. Add state polygons
+// create states variable, and assign null to it.
+var states = null;
+states = L.geoJson.ajax("assets/us-states.geojson", {
     style: style
 }).addTo(mymap);
 
