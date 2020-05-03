@@ -1,71 +1,64 @@
 // 1. Create a map object.
 var mymap = L.map('map', {
-    center: [44.13, -119.93],
+    center: [48.13, -100.93],
     zoom: 3,
     maxZoom: 10,
     minZoom: 3,
     detectRetina: true});
 
 // 2. Add a base map.
-L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png').addTo(mymap);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(mymap);
 
-// 3. Add cell towers GeoJSON Data
-// Null variable that will hold cell tower data
-var cellTowers = null;
+// 3. Add airports GeoJSON Data
+// Null variable that will hold airport data
+var airports = null;
 
 
 // 4. build up a set of colors from colorbrewer's dark2 category
-var colors = chroma.scale('Dark2').mode('lch').colors(9);
+var colors = chroma.scale('Accent').mode('lch').colors(2);
 
 // 5. dynamically append style classes to this page. This style classes will be used for colorize the markers.
-for (i = 0; i < 9; i++) {
+for (i = 0; i < 5; i++) {
     $('head').append($("<style> .marker-color-" + (i + 1).toString() + " { color: " + colors[i] + "; font-size: 15px; text-shadow: 0 0 3px #ffffff;} </style>"));
 }
 
 // Get GeoJSON and put on it on the map when it loads
-cellTowers= L.geoJson.ajax("assets/cell_towers.geojson", {
-    // assign a function to the onEachFeature parameter of the cellTowers object.
+airports= L.geoJson.ajax("assets/airports.geojson", {
+    // assign a function to the onEachFeature parameter of the airports object.
     // Then each (point) feature will bind a popup window.
-    // The content of the popup window is the value of `feature.properties.company`
+    // The content of the popup window is the value of `feature.properties.AIRPT_NAME`
     onEachFeature: function (feature, layer) {
-        layer.bindPopup(feature.properties.company);
+        layer.bindPopup(feature.properties.AIRPT_NAME);
     },
     pointToLayer: function (feature, latlng) {
         var id = 0;
-        if (feature.properties.company == "New Cingular") { id = 0; }
-        else if (feature.properties.company == "Cellco")  { id = 1; }
-        else if (feature.properties.company == "RCC Minnesota")  { id = 2; }
-        else if (feature.properties.company == "Verizon")  { id = 3; }
-        else if (feature.properties.company == "US Cellular")  { id = 4; }
-        else if (feature.properties.company == "Hood River Cellular")  { id = 5; }
-        else if (feature.properties.company == "Medford Cellular")  { id = 6; }
-        else if (feature.properties.company == "Oregon RSA")  { id = 7; }
-        else { id = 8;} // "Salem Cellular"
-        return L.marker(latlng, {icon: L.divIcon({className: 'fa fa-signal marker-color-' + (id + 1).toString() })});
+        if (feature.properties.CNTL_TWR == "Y") { id = 0; }
+        else { id = 1; } // N
+        return L.marker(latlng, {icon: L.divIcon({className: 'fa fa-plane marker-color-' + (id + 1).toString() })});
     },
-    attribution: 'Cell Tower Data &copy; Map Cruzin | Oregon counties &copy; Oregon Explorer | Base Map &copy; CartoDB | Made By Gordon DeLap'
+    attribution: 'US Airports &copy; Data.gov | US State Boundaries &copy; Mike Bostock | Base Map &copy; esri | Made By Gordon DeLap'
 }).addTo(mymap);
 
 
 // 6. Set function for color ramp
-colors = chroma.scale('OrRd').colors(5); //colors = chroma.scale('RdPu').colors(5);
+colors = chroma.scale('PuBu').colors(5); //colors = chroma.scale('RdPu').colors(5);
 
-function setColor(density) {
+function setColor(count) {
     var id = 0;
-    if (density > 18) { id = 4; }
-    else if (density > 13 && density <= 18) { id = 3; }
-    else if (density > 10 && density <= 13) { id = 2; }
-    else if (density > 5 &&  density <= 10) { id = 1; }
+    if (count > 20) { id = 4; }
+    else if (count > 15 && count <= 20) { id = 3; }
+    else if (count > 10 && count <= 15) { id = 2; }
+    else if (count > 5 &&  count <= 10) { id = 1; }
     else  { id = 0; }
     return colors[id];
 }
 
 
-// 7. Set style function that sets fill color.md property equal to cell tower density
+// 7. Set style function that sets fill color.md property equal to airport count
 function style(feature) {
     return {
-        fillColor: setColor(feature.properties.CT_CNT),
-        fillOpacity: 0.4,
+        fillColor: setColor(feature.properties.count),
+        fillOpacity: 0.7,
         weight: 2,
         opacity: 1,
         color: '#b4b4b4',
@@ -89,22 +82,15 @@ legend.onAdd = function () {
 
     // Create Div Element and Populate it with HTML
     var div = L.DomUtil.create('div', 'legend');
-    div.innerHTML += '<b># Cell Tower</b><br />';
-    div.innerHTML += '<i style="background: ' + colors[4] + '; opacity: 0.5"></i><p>19+</p>';
-    div.innerHTML += '<i style="background: ' + colors[3] + '; opacity: 0.5"></i><p>14-18</p>';
-    div.innerHTML += '<i style="background: ' + colors[2] + '; opacity: 0.5"></i><p>11-13</p>';
-    div.innerHTML += '<i style="background: ' + colors[1] + '; opacity: 0.5"></i><p> 6-10</p>';
-    div.innerHTML += '<i style="background: ' + colors[0] + '; opacity: 0.5"></i><p> 0- 5</p>';
-    div.innerHTML += '<hr><b>Company<b><br />';
-    div.innerHTML += '<i class="fa fa-signal marker-color-1"></i><p> New Cingular</p>';
-    div.innerHTML += '<i class="fa fa-signal marker-color-2"></i><p> Cello</p>';
-    div.innerHTML += '<i class="fa fa-signal marker-color-3"></i><p> RCC Minnesota</p>';
-    div.innerHTML += '<i class="fa fa-signal marker-color-4"></i><p> Verizon</p>';
-    div.innerHTML += '<i class="fa fa-signal marker-color-5"></i><p> US Cellular</p>';
-    div.innerHTML += '<i class="fa fa-signal marker-color-6"></i><p> Hood River Cellular</p>';
-    div.innerHTML += '<i class="fa fa-signal marker-color-7"></i><p> Medford Cellular</p>';
-    div.innerHTML += '<i class="fa fa-signal marker-color-8"></i><p> Oregon RSA</p>';
-    div.innerHTML += '<i class="fa fa-signal marker-color-9"></i><p> Salem Cellular</p>';
+    div.innerHTML += '<b>Number of Airports</b><br />';
+    div.innerHTML += '<i style="background: ' + colors[4] + '; opacity: 0.7"></i><p>21+</p>';
+    div.innerHTML += '<i style="background: ' + colors[3] + '; opacity: 0.7"></i><p>16-20</p>';
+    div.innerHTML += '<i style="background: ' + colors[2] + '; opacity: 0.7"></i><p>11-15</p>';
+    div.innerHTML += '<i style="background: ' + colors[1] + '; opacity: 0.7"></i><p> 6-10</p>';
+    div.innerHTML += '<i style="background: ' + colors[0] + '; opacity: 0.7"></i><p> 0- 5</p>';
+    div.innerHTML += '<hr><b>Has control tower<b><br />';
+    div.innerHTML += '<i class="fa fa-plane marker-color-1"></i><p> YES</p>';
+    div.innerHTML += '<i class="fa fa-plane marker-color-2"></i><p> NO</p>';
     // Return the Legend div containing the HTML content
     return div;
 };
